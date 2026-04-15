@@ -7,12 +7,12 @@
 
 ## Key Features
 
-* ⚡ **Async-first Backend**: High performance architecture powered by **FastAPI** and **SQLAlchemy 2.0**.
-* 🛡️ **Robust Validation**: Strict data integrity using **Pydantic V2** for schema enforcement.
+* ⚡ **Async-first Backend**: High performance architecture powered by FastAPI and SQLAlchemy 2.
+* 🛡️ **Robust Validation**: Strict data integrity using Pydantic for schema enforcement.
 * 🏗️ **Clean Architecture**: Implementation of the **Repository Pattern** to decouple business logic from database operations.
 * 👥 **User Management**: Integrated role tracking and relational mapping between task creators and assignments.
-* 🤖 **AI Powered (WIP)**: Planned **RAG (Retrieval-Augmented Generation)** system for natural language querying of task history.
-* 📱 **Multi-interface**: Currently developing a **Frontend dashboard** and a **Telegram bot** for seamless cross-platform management.
+* 🤖 **AI Powered (WIP)**: Planned RAG (Retrieval Augmented Generation) system for natural language querying of task history.
+* 📱 **Multi-interface**: Currently developing a Frontend dashboard and a Telegram bot for seamless cross-platform management.
 
 ---
 
@@ -30,13 +30,13 @@ Once the project is running, you can access:
 ## Technical Stack
 
 ### Backend
-* **Python 3.10+**: The core programming language.
+* **Python**: The core programming language.
 * **FastAPI**: Modern web framework for building APIs.
 * **SQLAlchemy**: Database ORM with asynchronous `asyncpg` support.
 * **Pydantic**: Data validation and settings management.
 
 ### Frontend (In Development)
-* **HTML5 & CSS3**: For building responsive and user-friendly interfaces.
+* **HTML & CSS**: For building responsive and user-friendly interfaces.
 
 ---
 
