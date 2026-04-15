@@ -7,7 +7,7 @@
 
 ## Key Features
 
-* ⚡ **Async-first Backend**: High-performance architecture powered by **FastAPI** and **SQLAlchemy 2.0**.
+* ⚡ **Async-first Backend**: High performance architecture powered by **FastAPI** and **SQLAlchemy 2.0**.
 * 🛡️ **Robust Validation**: Strict data integrity using **Pydantic V2** for schema enforcement.
 * 🏗️ **Clean Architecture**: Implementation of the **Repository Pattern** to decouple business logic from database operations.
 * 👥 **User Management**: Integrated role tracking and relational mapping between task creators and assignments.
