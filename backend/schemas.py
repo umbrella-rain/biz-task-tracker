@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
+from models import TaskStatus
 
 class UserSchema(BaseModel):
     email: EmailStr # get customer email
@@ -42,6 +43,14 @@ class TaskRead(TaskSchema):
     id: str
     creator_id: str
     status: str
+
+    class Config:
+        from_attributes = True
+
+class TaskUpdate(BaseModel):
+    title: str = Field(min_length = 2, max_length = 50)
+    status: Optional[TaskStatus] = None
+    description: str = Field(min_length = 2, max_length = 250)
 
     class Config:
         from_attributes = True

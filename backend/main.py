@@ -6,7 +6,7 @@ from uuid import uuid4
 
 
 from database import engine, get_db, Base
-from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate
+from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate
 from models import User, Task
 from repository import TaskRepository
 
@@ -90,3 +90,20 @@ async def create_task(task: TaskSchema, client_id: str, db: AsyncSession = Depen
 async def get_task(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Task))
     return result.scalars().all()
+
+@app.put("/tasks/{task_id}", response_model=TaskSchema)
+async def update_task(task_id: str, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Task).where(Task.id == task_id))
+    task_in_db = result.scalars().first()
+
+    if not task_in_db:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    update_data = task_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(task_in_db, key, value)
+
+    await db.commit()
+    await db.refresh(task_in_db)
+    return task_in_db
