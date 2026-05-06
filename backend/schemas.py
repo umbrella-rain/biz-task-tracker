@@ -43,6 +43,7 @@ class TaskRead(TaskSchema):
     id: str
     creator_id: str
     status: str
+    creator: Optional[UserSchema] = None
 
     class Config:
         from_attributes = True

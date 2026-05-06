@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
-SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:Daniil_2004@127.0.0.1:5432/postgres"
+SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:Password@127.0.0.1:5432/postgres"
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -9,7 +9,7 @@ SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_co
 
 class Base(DeclarativeBase):
     pass
-
+ß
 async def get_db():
     async with SessionLocal() as db:
         try:

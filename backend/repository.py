@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import models, schemas, select
 from uuid import uuid4
 from sqlalchemy import select, and_
+from sqlalchemy.orm import joinedload
 
 class TaskRepository:
 
@@ -41,3 +42,21 @@ class TaskRepository:
             await db.commit()
             await db.refresh(task)
         return task
+
+
+    @staticmethod
+    async def get_task(db: AsyncSession):
+        result = await db.execute(select(models.Task))
+        return result.scalars().all()
+
+        @staticmethod
+        async def search_task(db: AsyncSession, query: str):
+            stmt = ((models.Task).options(joinedload(models.Task.creator)).where((models.Task.title.ilike(f"%{query}%"))
+                                                                                 |(models.Task.description.ilike(f"%{query}%"))
+                )
+            )
+            result = await db.execute(stmt)
+            return result.scalars().all()
+
+        result = await db.execute(stmt)
+        return result.scalars().all()
