@@ -1,3 +1,4 @@
+from backend.models import UserRole
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 from models import TaskStatus
@@ -38,12 +39,20 @@ class TaskSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class UserRead (BaseModel):
+    id: str
+    email: EmailStr
+    role: UserRole
+
+    class Config:
+        from_attributes = True
+
 
 class TaskRead(TaskSchema):
     id: str
     creator_id: str
     status: str
-    creator: Optional[UserSchema] = None
+    creator: Optional[UserRead] = None
 
     class Config:
         from_attributes = True
@@ -55,6 +64,12 @@ class TaskUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    role: UserRole
 
 
 class UserLogin(BaseModel):

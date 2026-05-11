@@ -9,7 +9,7 @@ from security import decode_access_token
 
 
 from database import engine, get_db, Base
-from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token
+from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token, UserCreate, UserRead
 from models import User
 from repository import TaskRepository
 from security import get_password_hash, verify_password, create_access_token, decode_access_token
@@ -80,12 +80,18 @@ async def get_my_tasks(
 
 
 
-@app.post("/users", response_model=UserSchema)
-async def create_user(user: UserSchema, db: AsyncSession = Depends(get_db)):
+@app.post("/users", response_model=UserRead)
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+
+    hashed = get_password_hash(user.password)
     db_user = User(
         id=str(uuid4()),
-        **user.model_dump()
+        email=user.email,
+        role=user.role,
+        hashed_password= hashed
     )
+
+
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -138,13 +144,11 @@ async def delete_user_by_id(user_id: str, db: AsyncSession = Depends(get_db)):
 async def create_task(task: TaskSchema, client_id: str, db: AsyncSession = Depends(get_db)):
     return await TaskRepository.create_task(db, task, client_id)
 
-@app.get("/tasks", response_model=list[TaskRead])
-async def get_all_tasks(db: AsyncSession = Depends(get_db)):
-    return await TaskRepository.get_all_tasks(db)
 
 @app.get("/tasks/search", response_model=list[TaskRead])
 async def search_tasks_route(query: str, db: AsyncSession = Depends(get_db)):
     return await TaskRepository.search_task(db, query)
+
 
 @app.get("/tasks/{task_id}", response_model=TaskRead)
 async def search_tasks_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
@@ -153,12 +157,14 @@ async def search_tasks_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     return task_in_db
 
+
 @app.put("/tasks/{task_id}", response_model=TaskRead)
 async def update_tasks_by_id(task_id: str, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
     task_in_db = await TaskRepository.update_task(db, task_id, task_data)
     if not task_in_db:
         raise HTTPException(status_code=404, detail="Task not found")
     return task_in_db
+
 
 @app.delete("/tasks/{task_id}")
 async def delete_task_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
