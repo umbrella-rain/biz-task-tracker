@@ -79,7 +79,7 @@ This project is currently **Work in Progress**.
 
 * [x] Core API architecture and asynchronous DB integration.
 * [x] Repository Pattern implementation.
-* [ ] Frontend Dashboard development (HTML/CSS).
+* [x] Frontend Dashboard development (HTML/CSS).
 * [ ] RAG System integration for AI-driven insights.
 * [ ] Telegram Bot interface launch.
 
