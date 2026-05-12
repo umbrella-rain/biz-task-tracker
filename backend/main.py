@@ -10,7 +10,7 @@ from security import decode_access_token
 
 from database import engine, get_db, Base
 from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token, UserCreate, UserRead
-from models import User
+from models import User, UserRole
 from repository import TaskRepository
 from security import get_password_hash, verify_password, create_access_token, decode_access_token
 
@@ -46,7 +46,6 @@ app.add_middleware(
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     user_id = decode_access_token(token)
-
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid token")
     result = await db.execute(select(User).where(User.id == user_id))
@@ -70,9 +69,7 @@ async def login(user_credentials: UserLogin, db: AsyncSession = Depends(get_db))
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/tasks", response_model=list[TaskRead])
-async def get_my_tasks(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)):
+async def get_my_tasks(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     stmt = select(Task).where(Task.creator_id == current_user.id)
     result = await db.execute(stmt)
     return result.scalars().all()
@@ -81,8 +78,11 @@ async def get_my_tasks(
 
 
 @app.post("/users", response_model=UserRead)
-async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
 
+
+    if not current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can create new users")
     hashed = get_password_hash(user.password)
     db_user = User(
         id=str(uuid4()),
@@ -98,12 +98,12 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     return db_user
 
 @app.get("/users")
-async def get_users(db: AsyncSession = Depends(get_db)):
+async def get_users(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User))
     return result.scalars().all()
 
 @app.get("/users/search")
-async def search_user(query: str, db: AsyncSession = Depends(get_db)):
+async def search_user(query: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     stmt = select(User).where(or_(User.email == query, User.phone_number == query))
     result = await db.execute(stmt)
     user = result.scalars().first()
@@ -112,7 +112,7 @@ async def search_user(query: str, db: AsyncSession = Depends(get_db)):
     return user
 
 @app.put("/users/{user_id}", response_model=UserSchema)
-async def update_user_by_id(user_id: str, user_data: UserUpdate, db: AsyncSession = Depends(get_db)):
+async def update_user_by_id(user_id: str, user_data: UserUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User).where(User.id == user_id))
     db_user = result.scalars().first()
 
@@ -128,7 +128,7 @@ async def update_user_by_id(user_id: str, user_data: UserUpdate, db: AsyncSessio
     return db_user
 
 @app.delete("/users/{user_id}")
-async def delete_user_by_id(user_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_user_by_id(user_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User).where(User.id == user_id))
     user_in_db = result.scalars().first()
 
@@ -141,17 +141,17 @@ async def delete_user_by_id(user_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @app.post("/tasks", response_model=TaskRead)
-async def create_task(task: TaskSchema, client_id: str, db: AsyncSession = Depends(get_db)):
+async def create_task(task: TaskSchema, client_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     return await TaskRepository.create_task(db, task, client_id)
 
 
 @app.get("/tasks/search", response_model=list[TaskRead])
-async def search_tasks_route(query: str, db: AsyncSession = Depends(get_db)):
+async def search_tasks_route(query: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     return await TaskRepository.search_task(db, query)
 
 
 @app.get("/tasks/{task_id}", response_model=TaskRead)
-async def search_tasks_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
+async def search_tasks_by_id(task_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     task_in_db = await TaskRepository.get_task_by_id(db, task_id)
     if not task_in_db:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -159,7 +159,7 @@ async def search_tasks_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @app.put("/tasks/{task_id}", response_model=TaskRead)
-async def update_tasks_by_id(task_id: str, task_data: TaskUpdate, db: AsyncSession = Depends(get_db)):
+async def update_tasks_by_id(task_id: str, task_data: TaskUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     task_in_db = await TaskRepository.update_task(db, task_id, task_data)
     if not task_in_db:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -167,7 +167,7 @@ async def update_tasks_by_id(task_id: str, task_data: TaskUpdate, db: AsyncSessi
 
 
 @app.delete("/tasks/{task_id}")
-async def delete_task_by_id(task_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_task_by_id(task_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     success = await TaskRepository.delete_task(db, task_id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
