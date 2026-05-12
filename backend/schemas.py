@@ -1,4 +1,4 @@
-from backend.models import UserRole
+from models import UserRole
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 from models import TaskStatus

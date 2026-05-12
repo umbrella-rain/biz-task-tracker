@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
 import bcrypt
 import jwt
 
@@ -7,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from jwt.exceptions import InvalidTokenError
 
 
-SECRET_KEY = "super_secret_key_for_our_task_tracker_pet_project"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
