@@ -5,11 +5,13 @@ from sqlalchemy import select, or_
 from contextlib import asynccontextmanager
 from uuid import uuid4
 from fastapi.security import OAuth2PasswordBearer
+
+import models
 from security import decode_access_token
 
 
 from database import engine, get_db, Base
-from schemas import UserSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token, UserCreate, UserRead
+from schemas import ClientSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token, UserCreate, UserRead,ClientRead
 from models import User, UserRole
 from repository import TaskRepository
 from security import get_password_hash, verify_password, create_access_token, decode_access_token
@@ -42,6 +44,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/clients", response_model=ClientRead)
+async def create_client(client: ClientSchema, db: AsyncSession = Depends(get_db)):
+    db_client = models.Clients(
+        id=str(uuid4()),
+        **client.model_dump()
+    )
+
+    db.add(db_client)
+    await db.commit()
+    await db.refresh(db_client)
+    return db_client
+
+@app.get("/clients/{client_id}", response_model=ClientRead)
+async def get_client(client_id: str, db: AsyncSession = Depends(get_db)):
+    return await UserRepository.get_client(db, client_id)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
@@ -111,7 +128,7 @@ async def search_user(query: str, db: AsyncSession = Depends(get_db), current_us
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@app.put("/users/{user_id}", response_model=UserSchema)
+@app.put("/users/{user_id}", response_model=UserUpdate)
 async def update_user_by_id(user_id: str, user_data: UserUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User).where(User.id == user_id))
     db_user = result.scalars().first()
@@ -141,8 +158,8 @@ async def delete_user_by_id(user_id: str, db: AsyncSession = Depends(get_db), cu
 
 
 @app.post("/tasks", response_model=TaskRead)
-async def create_task(task: TaskSchema, client_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return await TaskRepository.create_task(db, task, client_id)
+async def create_task(task: TaskSchema, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return await TaskRepository.create_task(db, task, current_user.id)
 
 
 @app.get("/tasks/search", response_model=list[TaskRead])

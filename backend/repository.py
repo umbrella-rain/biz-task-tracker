@@ -14,6 +14,7 @@ class TaskRepository:
             title=task_data.title,
             description=task_data.description,
             creator_id=user_id,
+            client_id=task_data.client_id,
             status=task_data.status or "new"
         )
 

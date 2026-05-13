@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 from models import TaskStatus
 
-class UserSchema(BaseModel):
+class ClientSchema(BaseModel):
     email: EmailStr # get customer email
     name: str = Field(min_length = 2, max_length = 50) # get customer name
     description: str | None = Field(max_length = 250) # get customer bio
@@ -12,6 +12,14 @@ class UserSchema(BaseModel):
     age: int = Field(ge = 14) # get customer age
     status: str | None # current status of the customer
     priority: int = Field(default = 1, ge=1, le=3) # 1 is pending, 2 is default, 3 is high priority
+
+    class Config:
+        from_attributes = True
+
+
+
+class ClientRead(ClientSchema):
+    id: str
 
     class Config:
         from_attributes = True
@@ -32,6 +40,7 @@ class UserUpdate(BaseModel):
 
 
 class TaskSchema(BaseModel):
+    client_id: str
     title: str = Field(min_length = 2, max_length = 50)
     status: str | None
     description: str = Field(min_length = 2, max_length = 250)

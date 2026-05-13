@@ -23,10 +23,12 @@ class Task(Base):
 
     client_id = Column(String, ForeignKey('clients.id'))
     client = relationship('Clients', back_populates='tasks')
-
+    assigned_to_id = Column(String, ForeignKey('users.id'))
+    assigned_to = relationship('User', back_populates='assigned_tasks', foreign_keys='[Task.assigned_to_id]')
 
     creator_id = Column(String, ForeignKey('users.id'))
-    creator = relationship('User', back_populates='created_tasks')
+    creator = relationship('User', back_populates='created_tasks', foreign_keys='[Task.creator_id]')
+
 
 
 class User(Base):
@@ -36,7 +38,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     created_tasks = relationship('Task', back_populates='creator', foreign_keys='[Task.creator_id]')
-
+    assigned_tasks = relationship('Task', back_populates='assigned_to', foreign_keys='[Task.assigned_to_id]')
 
 class Clients(Base):
     __tablename__ = 'clients'
