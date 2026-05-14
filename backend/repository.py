@@ -73,3 +73,47 @@ class TaskRepository:
             await db.commit()
             return True
         return False
+
+class ClientRepository:
+    @staticmethod
+    async def get_client(db: AsyncSession, client_id: str):
+        stmt = select(models.Clients).where(models.Clients.id == client_id)
+        result = await db.execute(stmt)
+        return result.scalars().first()
+
+    @staticmethod
+    async def get_all_clients(db: AsyncSession):
+        stmt = select(models.Clients)
+        result = await db.execute(stmt)
+        return result.scalars().all()
+
+    @staticmethod
+    async def create_client(db: AsyncSession, client_data: schemas.ClientSchema):
+        client = models.Clients(**client_data.model_dump())
+        db.add(client)
+        await db.commit()
+        await db.refresh(client)
+        return client
+
+    @staticmethod
+    async def update_client(db: AsyncSession, client_id: str, client_data: schemas.ClientSchema):
+        client = await ClientRepository.get_client(db, client_id)
+        if client:
+            update_data = client_data.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(client, key, value)
+
+            await db.commit()
+            await db.refresh(client)
+
+            return await ClientRepository.get_client(db, client_id)
+        return None
+
+    @staticmethod
+    async def delete_client(db: AsyncSession, client_id: str):
+        client = await ClientRepository.get_client(db, client_id)
+        if client:
+            await db.delete(client)
+            await db.commit()
+            return True
+        return False

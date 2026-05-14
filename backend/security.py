@@ -13,7 +13,7 @@ from jwt.exceptions import InvalidTokenError
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 8 # 8 days
 
 
 def get_password_hash(password: str) -> str:

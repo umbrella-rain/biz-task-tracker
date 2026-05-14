@@ -7,7 +7,7 @@ class ClientSchema(BaseModel):
     email: EmailStr # get customer email
     name: str = Field(min_length = 2, max_length = 50) # get customer name
     description: str | None = Field(max_length = 250) # get customer bio
-    phone_number: str | None = Field(default = 123123)
+    phone_number: str | None = Field(default = "123123") # get customer phone number
     gender: str | None = Field(default = "Female") # get customer gender
     age: int = Field(ge = 14) # get customer age
     status: str | None # current status of the customer
@@ -15,7 +15,6 @@ class ClientSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 
 class ClientRead(ClientSchema):

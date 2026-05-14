@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
+from sqlalchemy.orm import joinedload
 from contextlib import asynccontextmanager
 from uuid import uuid4
 from fastapi.security import OAuth2PasswordBearer
@@ -12,8 +13,8 @@ from security import decode_access_token
 
 from database import engine, get_db, Base
 from schemas import ClientSchema, TaskSchema, TaskRead, UserUpdate, TaskUpdate, UserLogin, Token, UserCreate, UserRead,ClientRead
-from models import User, UserRole
-from repository import TaskRepository
+from models import User, UserRole, Task, Clients
+from repository import TaskRepository, ClientRepository
 from security import get_password_hash, verify_password, create_access_token, decode_access_token
 
 
@@ -42,23 +43,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+
 )
 
-@app.post("/clients", response_model=ClientRead)
-async def create_client(client: ClientSchema, db: AsyncSession = Depends(get_db)):
-    db_client = models.Clients(
-        id=str(uuid4()),
-        **client.model_dump()
-    )
 
-    db.add(db_client)
-    await db.commit()
-    await db.refresh(db_client)
-    return db_client
-
-@app.get("/clients/{client_id}", response_model=ClientRead)
-async def get_client(client_id: str, db: AsyncSession = Depends(get_db)):
-    return await UserRepository.get_client(db, client_id)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
@@ -71,6 +59,50 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise HTTPException(status_code=401, detail="Пользователь не найден")
     return user
 
+
+
+
+
+@app.post("/clients", response_model=ClientRead)
+async def create_client(client: ClientSchema, db: AsyncSession = Depends(get_db),  current_user: User = Depends(get_current_user)):
+    db_client = models.Clients(
+        id=str(uuid4()),
+        **client.model_dump()
+    )
+
+    db.add(db_client)
+    await db.commit()
+    await db.refresh(db_client)
+    return db_client
+
+@app.get("/clients", response_model=list[ClientRead])
+async def get_all_clients(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return await ClientRepository.get_all_clients(db)
+
+@app.get("/clients/{client_id}", response_model=ClientRead)
+async def get_client(client_id: str, db: AsyncSession = Depends(get_db),  current_user: User = Depends(get_current_user)):
+    return await ClientRepository.get_client(db, client_id)
+
+@app.get("/client/search")
+async def search_client(query: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    stmt = select(Clients).where(or_(Clients.email == query, Clients.phone_number == query))
+    result = await db.execute(stmt)
+    client = result.scalars().first()
+    if not client:
+        raise HTTPException(status_code=404, detail="User not found")
+    return client
+
+@app.put("/clients/{client_id}", response_model=ClientRead)
+async def update_client(client_id: str, client: ClientSchema, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return await ClientRepository.update_client(db, client_id, client)
+
+@app.delete("/clients/{client_id}")
+async def delete_client(client_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if await ClientRepository.delete_client(db, client_id):
+        return {"message": f"Client with id {client_id} has been deleted"}
+    else:
+        raise HTTPException(status_code=404, detail=f"Client with id {client_id} not found")
+    
 
 @app.post("/login", response_model=Token)
 async def login(user_credentials: UserLogin, db: AsyncSession = Depends(get_db)):
@@ -87,7 +119,7 @@ async def login(user_credentials: UserLogin, db: AsyncSession = Depends(get_db))
 
 @app.get("/tasks", response_model=list[TaskRead])
 async def get_my_tasks(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    stmt = select(Task).where(Task.creator_id == current_user.id)
+    stmt = select(Task).options(joinedload(Task.creator)).where(Task.creator_id == current_user.id)
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -98,8 +130,8 @@ async def get_my_tasks(db: AsyncSession = Depends(get_db), current_user: User = 
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
 
 
-    if not current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Only admins can create new users")
+    if current_user.role != UserRole.ADMIN:
+      raise HTTPException(status_code=403, detail="Only admins can create new users")
     hashed = get_password_hash(user.password)
     db_user = User(
         id=str(uuid4()),
@@ -118,16 +150,6 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db), curr
 async def get_users(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User))
     return result.scalars().all()
-
-@app.get("/users/search")
-async def search_user(query: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    stmt = select(User).where(or_(User.email == query, User.phone_number == query))
-    result = await db.execute(stmt)
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
 @app.put("/users/{user_id}", response_model=UserUpdate)
 async def update_user_by_id(user_id: str, user_data: UserUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(User).where(User.id == user_id))
