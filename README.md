@@ -37,55 +37,55 @@ The key features are:
 
 ### With Docker (recommended)
 
-```bash
+​```bash
 git clone https://github.com/umbrella-rain/biz-task-tracker.git
 cd biz-task-tracker
 docker-compose up --build
-```
+​```
 
 ### Without Docker
 
-```bash
+​```bash
 pip install -r requirements.txt
 cd backend
 uvicorn main:app --reload
-```
+​```
 
 ## Example
 
 ### Register a user
 
-```bash
+​```bash
 curl -X POST http://localhost:8000/users \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@biz.com", "password": "secret", "role": "admin"}'
-```
+​```
 
 ### Login and get a token
 
-```bash
+​```bash
 curl -X POST http://localhost:8000/login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@biz.com", "password": "secret"}'
-```
+​```
 
 Response:
 
-```json
+​```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
   "token_type": "bearer"
 }
-```
+​```
 
 ### Create a task
 
-```bash
+​```bash
 curl -X POST http://localhost:8000/tasks \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title": "Call client", "description": "Discuss Q4 contract", "status": "new"}'
-```
+​```
 
 ## Interactive API Docs
 
@@ -93,9 +93,41 @@ Once the server is running, open your browser at <http://localhost:8000/docs> fo
 
 ## Running Tests
 
-```bash
+​```bash
 cd backend
 pytest -v
-```
+​```
 
 ## Project Structure
+
+​```
+biz-task-tracker/
+├── backend/
+│   ├── main.py          # FastAPI app and routes
+│   ├── models.py        # SQLAlchemy ORM models
+│   ├── schemas.py       # Pydantic schemas
+│   ├── repository.py    # Data access layer
+│   ├── database.py      # Async engine and session
+│   ├── security.py      # JWT and password hashing
+│   └── test_main.py     # Pytest test suite
+├── frontend/            # HTML/CSS dashboard (WIP)
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
+​```
+
+## Roadmap
+
+- [x] Async REST API with FastAPI
+- [x] Repository Pattern
+- [x] JWT authentication with role-based access
+- [x] Docker & Docker Compose setup
+- [x] Pytest coverage for core endpoints
+
+## Contact
+
+**LinkedIn**: [Danylo Blidar](https://pl.linkedin.com/in/danylo-blidar-4416bb365)
+
+## License
+
+This project is licensed under the terms of the MIT license.
