@@ -100,21 +100,18 @@ pytest -v
 
 ## Project Structure
 
-​```
-biz-task-tracker/
-├── backend/
-│   ├── main.py          # FastAPI app and routes
-│   ├── models.py        # SQLAlchemy ORM models
-│   ├── schemas.py       # Pydantic schemas
-│   ├── repository.py    # Data access layer
-│   ├── database.py      # Async engine and session
-│   ├── security.py      # JWT and password hashing
-│   └── test_main.py     # Pytest test suite
-├── frontend/            # HTML/CSS dashboard (WIP)
-├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
-​```
+| File | Description |
+|------|-------------|
+| `backend/main.py` | FastAPI app and routes |
+| `backend/models.py` | SQLAlchemy ORM models |
+| `backend/schemas.py` | Pydantic request/response schemas |
+| `backend/repository.py` | Data access layer (Repository Pattern) |
+| `backend/database.py` | Async engine and session management |
+| `backend/security.py` | JWT tokens and password hashing |
+| `backend/test_main.py` | Pytest test suite |
+| `Dockerfile` | Container build instructions |
+| `docker-compose.yml` | Multi-container setup with PostgreSQL |
+| `requirements.txt` | Python dependencies |
 
 ## Roadmap
 
