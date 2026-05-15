@@ -1,95 +1,101 @@
-# Biz Task Tracker
+<h1 align="center">Biz Task Tracker</h1>
 
-**Biz Task Tracker** is a modern Full-stack system designed for small businesses to automate request intake and eliminate operational chaos. Built with **Python**, it leverages an asynchronous stack for maximum performance and reliability.
-
-
----
-
-## Key Features
-
-* ⚡ **Async-first Backend**: High performance architecture powered by FastAPI and SQLAlchemy.
-* 🛡️ **Robust Validation**: Strict data integrity using Pydantic for schema enforcement.
-* 🏗️ **Clean Architecture**: Implementation of the **Repository Pattern** to decouple business logic from database operations.
-* 👥 **User Management**: Integrated role tracking and relational mapping between task creators and assignments.
-* 🤖 **AI Powered (WIP)**: Planned RAG (Retrieval Augmented Generation) system for natural language querying of task history.
-* 📱 **Multi-interface**: Currently developing a Frontend dashboard and a Telegram bot for seamless cross-platform management.
+<p align="center">
+    <em>Async-first task tracking system for small businesses. Built for performance, designed for clarity.</em>
+</p>
 
 ---
 
-## Interactive API Documentation
+**Source Code**: <https://github.com/umbrella-rain/biz-task-tracker>
 
-Once the project is running, you can access:
-
-* **Swagger UI**: An interactive playground to test all endpoints.
-* **ReDoc**: Alternative structured API documentation.
-
-# <a href="https://storied-rugelach-0a138f.netlify.app/" target="_blank"> Swagger API Demo </a>
+**Live API Demo**: <https://storied-rugelach-0a138f.netlify.app/>
 
 ---
 
-## Technical Stack
+Biz Task Tracker is a modern, asynchronous CRM-style API for managing clients, tasks, and team members. Built with Python and FastAPI, it leverages a fully async stack for high throughput and clean architecture.
 
-### Backend
-* **Python**: The core programming language.
-* **FastAPI**: Modern web framework for building APIs.
-* **SQLAlchemy**: Database ORM with asynchronous `asyncpg` support.
-* **Pydantic**: Data validation and settings management.
+The key features are:
 
-### Frontend (In Development)
-* **HTML & CSS**: For building responsive and user-friendly interfaces.
-
----
-
-## Project Structure
-
-The repository follows a modular layout to ensure scalability:
-
-* `main.py`: Entry point, application initialization, and API routing.
-* `models.py`: SQLAlchemy database models and table definitions.
-* `schemas.py`: Pydantic schemas for request/response validation.
-* `repository.py`: Data access layer for CRUD operations.
-* `database.py`: Database engine configuration and async session management.
+* **Async-first**: Built on FastAPI and SQLAlchemy with `asyncpg` for non-blocking I/O end-to-end.
+* **Secure**: JWT authentication with `bcrypt` password hashing. All endpoints protected by default.
+* **Role-based access**: Admin / Manager / Worker roles with permission checks at the route level.
+* **Clean architecture**: Repository Pattern separates business logic from data access.
+* **Validated**: Strict request/response schemas with Pydantic v2.
+* **Containerized**: Production-ready Dockerfile and Docker Compose setup.
+* **Tested**: Pytest coverage for core endpoints with async test client.
+* **Standards-based**: Auto-generated OpenAPI documentation (Swagger UI + ReDoc).
 
 ---
 
-## Getting Started
+## Requirements
 
-### 1. Environment Configuration
-Create a `.env` file in the root directory and specify your database URL:
+* Python 3.11+
+* Docker & Docker Compose (recommended)
+* PostgreSQL 15+ (if running without Docker)
+
+## Installation
+
+### With Docker (recommended)
 
 ```bash
-SQLALCHEMY_DATABASE_URL="postgresql+asyncpg://user:password@localhost:5432/db_name"
+git clone https://github.com/umbrella-rain/biz-task-tracker.git
+cd biz-task-tracker
+docker-compose up --build
 ```
 
-### 2. Install Dependencies
+### Without Docker
+
 ```bash
 pip install -r requirements.txt
-```
-
-### 3. Run the Server
-```bash
+cd backend
 uvicorn main:app --reload
 ```
 
----
+## Example
 
-## Development Status (Roadmap)
+### Register a user
 
-This project is currently **Work in Progress**.
+```bash
+curl -X POST http://localhost:8000/users \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@biz.com", "password": "secret", "role": "admin"}'
+```
 
-* [x] Core API architecture and asynchronous DB integration.
-* [x] Repository Pattern implementation.
-* [x] Frontend Dashboard development (HTML/CSS).
-* [ ] RAG System integration for AI-driven insights.
-* [ ] Telegram Bot interface launch.
+### Login and get a token
 
----
+```bash
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@biz.com", "password": "secret"}'
+```
 
-## Contact
+Response:
 
-**LinkedIn**: [Danylo Blidar](https://pl.linkedin.com/in/danylo-blidar-4416bb365)  
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer"
+}
+```
 
----
+### Create a task
 
-### 🚧 Final Note
-**This repository is under active development.** I am currently refining the core architecture and adding features to move from a basic CRUD system to a production-ready business tool. My focus is on the **AI Assistant (RAG)** and **Telegram integration** to provide a seamless experience for small business owners.
+```bash
+curl -X POST http://localhost:8000/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Call client", "description": "Discuss Q4 contract", "status": "new"}'
+```
+
+## Interactive API Docs
+
+Once the server is running, open your browser at <http://localhost:8000/docs> for the auto-generated **Swagger UI**, or <http://localhost:8000/redoc> for the **ReDoc** alternative.
+
+## Running Tests
+
+```bash
+cd backend
+pytest -v
+```
+
+## Project Structure
