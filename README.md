@@ -100,7 +100,7 @@ pytest -v
 
 ## Project Structure
 
-​```plaintext
+​```
 biz-task-tracker/
 ├── backend/
 │   ├── main.py          # FastAPI app and routes
